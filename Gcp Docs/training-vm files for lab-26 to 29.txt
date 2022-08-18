@@ -1,0 +1,45 @@
+
+cat bq_magic.sh
+
+#! /bin/bash
+
+bq mk --dataset $DEVSHELL_PROJECT_ID:demos
+
+bq load --skip_leading_rows=1 --source_format=CSV demos.average_speeds gs://cloud-training/gcpdei/results-20180608-102960.csv timestamp:TIMESTAMP,latitude:FLOAT,longitude:FLOAT,highway:STRING,direction:STRING,lane:INTEGER,speed:FLOAT,sensorId:STRING
+bq load --skip_leading_rows=1 --source_format=CSV demos.current_conditions gs://cloud-training/gcpdei/results-20180608-102960.csv timestamp:TIMESTAMP,latitude:FLOAT,longitude:FLOAT,highway:STRING,direction:STRING,lane:INTEGER,speed:FLOAT,sensorId:STRING
+
+
+cat project_env.sh
+
+#! /bin/bash
+
+# Create the DEVSHELL_PROJECT_ID on a VM
+curl "http://metadata.google.internal/computeMetadata/v1/project/project-id" -H "Metadata-Flavor: Google" > Project_ID
+awk '{print "export DEVSHELL_PROJECT_ID=" $0, "\n" "export BUCKET=" $0, "\n" "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre" }' Project_ID > env.txt
+source env.txt
+echo $DEVSHELL_PROJECT_ID
+
+
+cat sensor_magic.sh
+
+#! /bin/bash
+
+# User tasks:
+#  1. copy repo to ~/training-data-analyst
+#  2. create $DEVSHELL_PROJECT_ID
+#
+# Install PIP
+# sudo apt-get install -y python-pip
+# Use PIP to install pubsub API
+# sudo pip install -U google-cloud-pubsub
+# Download the data file
+gsutil cp gs://cloud-training-demos/sandiego/sensor_obs2008.csv.gz ~/training-data-analyst/courses/streaming/publish/
+# cd to directory
+cd ~/training-data-analyst/courses/streaming/publish/
+# Run sensor simulator
+python3 ./send_sensor_data.py --speedFactor=60 --project $DEVSHELL_PROJECT_ID
+
+
+
+
+
